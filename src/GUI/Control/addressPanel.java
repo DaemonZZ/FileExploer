@@ -17,6 +17,9 @@ import javax.swing.border.LineBorder;
 
 public class addressPanel extends JPanel{
 	private JTextField txtAdd;
+	public JTextField getTxtAdd() {
+		return txtAdd;
+	}
 	public addressPanel() {
 		setBorder(new LineBorder(Color.LIGHT_GRAY));
 		setSize(652, 25);
