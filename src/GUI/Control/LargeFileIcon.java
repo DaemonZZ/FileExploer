@@ -7,6 +7,7 @@ import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import java.awt.Color;
+import java.awt.FlowLayout;
 
 public class LargeFileIcon extends JPanel {
 	private File file;
@@ -30,20 +31,29 @@ public class LargeFileIcon extends JPanel {
 	}
 
 	public LargeFileIcon(File file,String name) {
-		super();
 		setBackground(Color.WHITE);
 		this.file = file;
 		setSize(120, 120);
 		Icon iconFile = IconLoader.loadIco("ico\\file.png", 80, 80);
 		Icon iconFolder = IconLoader.loadIco("ico\\open.png", 80, 80);
+		Icon drive = IconLoader.loadIco("ico\\drive.png", 80, 80);
 		setLayout(new BorderLayout());
 		
 		JLabel ico = new JLabel(iconFile);
 		JLabel ico2 = new JLabel(iconFolder);
-		JLabel title = new JLabel(name);
+		JLabel ico3	=new JLabel(drive);
 		
-		add(title,BorderLayout.SOUTH);
-		if(file.isDirectory()) {
+		JPanel titPane = new JPanel();
+		titPane.setBackground(Color.WHITE);
+		titPane.setLayout(new FlowLayout());
+		JLabel title = new JLabel(name);
+		titPane.add(title);
+		
+		add(titPane,BorderLayout.SOUTH);
+		if(file.getParent()==null) {
+			add(ico3,BorderLayout.CENTER);
+		}
+		else if(file.isDirectory()) {
 			add(ico2,BorderLayout.CENTER);
 		}
 		else {
