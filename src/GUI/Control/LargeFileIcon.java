@@ -6,8 +6,16 @@ import java.io.File;
 import javax.swing.Icon;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+
+
 import java.awt.Color;
 import java.awt.FlowLayout;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.beans.PropertyChangeListener;
+import java.beans.PropertyChangeEvent;
 
 public class LargeFileIcon extends JPanel {
 	private File file;
@@ -30,6 +38,7 @@ public class LargeFileIcon extends JPanel {
 		this.name = name;
 	}
 
+	JPanel titPane;
 	public LargeFileIcon(File file,String name) {
 		setBackground(Color.WHITE);
 		this.file = file;
@@ -43,7 +52,7 @@ public class LargeFileIcon extends JPanel {
 		JLabel ico2 = new JLabel(iconFolder);
 		JLabel ico3	=new JLabel(drive);
 		
-		JPanel titPane = new JPanel();
+		 titPane = new JPanel();
 		titPane.setBackground(Color.WHITE);
 		titPane.setLayout(new FlowLayout());
 		JLabel title = new JLabel(name);
@@ -61,7 +70,55 @@ public class LargeFileIcon extends JPanel {
 		}
 		
 		setVisible(true);
-		
+		this.addMouseListener(iconClicked);
+		this.addFocusListener(otherIcoClicked);
 	}
-	
+	private MouseListener iconClicked = new MouseListener() {
+		
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void mousePressed(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void mouseExited(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			
+			requestFocus();
+			
+		}
+	};
+	private FocusListener otherIcoClicked = new FocusListener() {
+		
+		@Override
+		public void focusLost(FocusEvent e) {
+			setBackground(Color.WHITE);
+			titPane.setBackground(Color.WHITE);
+		}
+		
+		@Override
+		public void focusGained(FocusEvent e) {
+			setBackground(new Color(179,211,234));
+			titPane.setBackground(new Color(179,211,234));
+			
+		}
+	};
 }

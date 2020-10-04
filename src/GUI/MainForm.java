@@ -24,8 +24,14 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.Component;
+import java.awt.event.MouseAdapter;
 
 public class MainForm extends JFrame{
 	private ArrowButton backbtn,fwbtn,upbtn;
@@ -35,6 +41,7 @@ public class MainForm extends JFrame{
 	private String path="";
 	JPanel largeView1;
 	JScrollPane mainScroll;
+	JPopupMenu panelPop;
 	TreeSelectionListener tsl = new TreeSelectionListener() {
 		
 		@Override
@@ -46,9 +53,6 @@ public class MainForm extends JFrame{
 				mainScroll.setViewportView(largeView1);
 				largeView1.setPreferredSize(new Dimension(920,656));
 				largeView1.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
-				
-				
-				 
 				mainScroll.addComponentListener(new ComponentAdapter() {
 							@Override
 							public void componentResized(ComponentEvent e) {
@@ -59,37 +63,49 @@ public class MainForm extends JFrame{
 				File d =new File("C:\\");
 				FileSystemView sys = FileSystemView.getFileSystemView();
 				File[] root = File.listRoots();
-				TreeSet<File> lstRoot = new TreeSet<File>();
+				
 				for (File file : root) {
 					if(!file.equals(d)){ 
 						largeView1.add(new LargeFileIcon(file, file.toString()));
 					}
 				}
+				addPopup(largeView1, panelPop);
 				
 			}
 			else {
 				File selected = listNode.get(temp);
 				path=(selected.getAbsolutePath());
+				File[] childList = selected.listFiles();
+				TreeSet<File> lst = new TreeSet<File>();
+				for (File file : childList) {
+					lst.add(file);
+				}
 				address.getTxtAdd().setText(path);
 				
 				 largeView1 = new JPanel();
 				 largeView1.setBackground(Color.WHITE);
 				 mainScroll.setViewportView(largeView1);
-				 largeView1.setPreferredSize(new Dimension(920,656));
+				 int w = mainScroll.getWidth();
+				 int h =(childList.length/(w/150))*150;
+				 largeView1.setPreferredSize(new Dimension(w,h));
 				 largeView1.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 15));
 				 
 				 mainScroll.addComponentListener(new ComponentAdapter() {
 						@Override
 						public void componentResized(ComponentEvent e) {
-							largeView1.setPreferredSize(new Dimension(mainScroll.getSize().width,largeView1.getHeight()));
+							int w = mainScroll.getWidth();
+							 int h =(childList.length/((w)/135)+1)*135;
+							 largeView1.setPreferredSize(new Dimension(w,h));
 						}
 					});
 				 
-				File[] childList = selected.listFiles();
-				for (File file : childList) {
+				for (File file : lst) {
+					
 					LargeFileIcon icon = new LargeFileIcon(file, file.getName());
 					icon.setPreferredSize(new Dimension(120,120));
 					largeView1.add(icon);
+					icon.addMouseListener(doubleClicked);
+					addPopup(largeView1, panelPop);
 				}
 			}
 			
@@ -104,14 +120,14 @@ public class MainForm extends JFrame{
 		JMenuBar menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
 		
-		JMenu mnNewMenu = new JMenu("New menu");
-		menuBar.add(mnNewMenu);
+		JMenu mnFile = new JMenu("File");
+		menuBar.add(mnFile);
 		
-		JMenu mnNewMenu_1 = new JMenu("New menu");
-		menuBar.add(mnNewMenu_1);
+		JMenu mnView = new JMenu("View");
+		menuBar.add(mnView);
 		
-		JMenu mnNewMenu_2 = new JMenu("New menu");
-		menuBar.add(mnNewMenu_2);
+		JMenu mnHepl = new JMenu("Help");
+		menuBar.add(mnHepl);
 		
 		
 		JScrollPane treePanel = new JScrollPane();
@@ -150,12 +166,12 @@ public class MainForm extends JFrame{
 		mainPanel.setLayout(new BorderLayout(0, 0));
 		
 		JSplitPane split = new JSplitPane();
+		
 		mainPanel.add(split,BorderLayout.CENTER);
 		
 		JScrollPane treeScroll = new JScrollPane();
-		treeScroll.setPreferredSize(new Dimension(250,1));
+		treeScroll.setMinimumSize(new Dimension(150,300));
 		split.setLeftComponent(treeScroll);
-		
 		mainScroll = new JScrollPane();
 		mainScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 		
@@ -165,13 +181,52 @@ public class MainForm extends JFrame{
 		largeView1.setBackground(Color.WHITE);
 		mainScroll.setViewportView(largeView1);
 		largeView1.setPreferredSize(new Dimension(920,656));
+		
+		 panelPop = new JPopupMenu();
+		addPopup(largeView1, panelPop);
+		
+		JMenu menuView = new JMenu("View");
+		panelPop.add(menuView);
+		
+		JRadioButtonMenuItem titView = new JRadioButtonMenuItem("Title");
+		buttonGroup.add(titView);
+		titView.setSelected(true);
+		menuView.add(titView);
+		
+		JRadioButtonMenuItem largeView = new JRadioButtonMenuItem("Large Icon");
+		buttonGroup.add(largeView);
+		menuView.add(largeView);
+		
+		JRadioButtonMenuItem detailView = new JRadioButtonMenuItem("Details");
+		buttonGroup.add(detailView);
+		menuView.add(detailView);
+		
+		JMenuItem menuRefresh = new JMenuItem("Refresh");
+		panelPop.add(menuRefresh);
+		
+		panelPop.addSeparator();
+		
+		JMenuItem menuPaste = new JMenuItem("Paste");
+		panelPop.add(menuPaste);
 		largeView1.setLayout(new FlowLayout(FlowLayout.LEFT, 30, 30));
+		
+		JMenu menuNew = new JMenu("New");
+		panelPop.add(menuNew);
+		
+		JMenuItem menuFile = new JMenuItem("file");
+		menuNew.add(menuFile);
+		
+		panelPop.addSeparator();
+		
+		JMenuItem menuPro = new JMenuItem("Properties");
+		panelPop.add(menuPro);
 		
 		
 		 
 		mainScroll.addComponentListener(new ComponentAdapter() {
 					@Override
 					public void componentResized(ComponentEvent e) {
+						
 						largeView1.setPreferredSize(new Dimension(mainScroll.getSize().width,largeView1.getHeight()));
 					}
 				});
@@ -184,7 +239,9 @@ public class MainForm extends JFrame{
 			if(!file.equals(d)){ 
 				lstRoot.add(file);
 				System.out.println("Loaded : "+file);
-				largeView1.add(new LargeFileIcon(file, file.toString()));
+				LargeFileIcon ico = new LargeFileIcon(file, file.toString());
+				largeView1.add(ico);
+				ico.addMouseListener(doubleClicked);
 			}
 		}
 		
@@ -211,13 +268,6 @@ public class MainForm extends JFrame{
 //		
 		
 		treeScroll.setViewportView(tree);
-		
-		
-		
-		 
-		 
-		
-		
 		setVisible(true);
 		
 	}
@@ -231,18 +281,112 @@ public class MainForm extends JFrame{
 		
 		for (File file : list) {
 			if(!file.isHidden()&& file.isDirectory()) {
-				
-				root.add(displayTreeFolder(file));
-				
+				try {
+					root.add(displayTreeFolder(file));
+				}
+				catch(NullPointerException e) {
+					System.out.println(file + " : Không thể truy cập");
+				}
 			}
 		}
 		
 		return root;
 	}
+	private MouseListener doubleClicked = new MouseListener() {
+		
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void mousePressed(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void mouseExited(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			// TODO Auto-generated method stub
+			
+		}
+		
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			if (e.getClickCount() == 2 && !e.isConsumed()) {
+			     e.consume();
+			     System.out.println("OK");
+			     LargeFileIcon selectedIco = (LargeFileIcon) e.getComponent();
+			     File selected = selectedIco.getFile();
+			     System.out.println(selected);
+			     path=(selected.getAbsolutePath());
+					File[] childList = selected.listFiles();
+					TreeSet<File> lst = new TreeSet<File>();
+					for (File file : childList) {
+						lst.add(file);
+					}
+					address.getTxtAdd().setText(path);
+					
+					 largeView1 = new JPanel();
+					 largeView1.setBackground(Color.WHITE);
+					 mainScroll.setViewportView(largeView1);
+					 int w = mainScroll.getWidth();
+					 int h =(childList.length/(w/150))*150;
+					 largeView1.setPreferredSize(new Dimension(w,h));
+					 largeView1.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 15));
+					 
+					 mainScroll.addComponentListener(new ComponentAdapter() {
+							@Override
+							public void componentResized(ComponentEvent e) {
+								int w = mainScroll.getWidth();
+								 int h =(childList.length/((w)/135)+1)*135;
+								 largeView1.setPreferredSize(new Dimension(w,h));
+							}
+						});
+					 
+					for (File file : lst) {
+						
+						LargeFileIcon icon = new LargeFileIcon(file, file.getName());
+						icon.setPreferredSize(new Dimension(120,120));
+						largeView1.add(icon);
+						icon.addMouseListener(doubleClicked);
+					}
+					addPopup(largeView1, panelPop);
+				
+			}
+			
+		}
+	};
+	private final ButtonGroup buttonGroup = new ButtonGroup();
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		new MainForm();
 
 	}
 
+	private static void addPopup(Component component, final JPopupMenu popup) {
+		component.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					showMenu(e);
+				}
+			}
+			public void mouseReleased(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					showMenu(e);
+				}
+			}
+			private void showMenu(MouseEvent e) {
+				popup.show(e.getComponent(), e.getX(), e.getY());
+			}
+		});
+	}
+	
 }
