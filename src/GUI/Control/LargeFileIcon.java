@@ -14,8 +14,12 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.beans.PropertyChangeListener;
-import java.beans.PropertyChangeEvent;
+import javax.swing.JPopupMenu;
+import GUI.MainForm;
+
+import java.awt.Component;
+import java.awt.event.MouseAdapter;
+import javax.swing.JMenuItem;
 
 public class LargeFileIcon extends JPanel {
 	private File file;
@@ -39,6 +43,8 @@ public class LargeFileIcon extends JPanel {
 	}
 
 	JPanel titPane;
+	JLabel title;
+	
 	public LargeFileIcon(File file,String name) {
 		setBackground(Color.WHITE);
 		this.file = file;
@@ -46,6 +52,31 @@ public class LargeFileIcon extends JPanel {
 		Icon iconFile = IconLoader.loadIco("ico\\file.png", 80, 80);
 		Icon iconFolder = IconLoader.loadIco("ico\\open.png", 80, 80);
 		Icon drive = IconLoader.loadIco("ico\\drive.png", 80, 80);
+		
+		JPopupMenu popupMenu = new JPopupMenu();
+		addPopup(this, popupMenu);
+		
+		JMenuItem mntmOpen = new JMenuItem("Open");
+		popupMenu.add(mntmOpen);
+		mntmOpen.addActionListener(MainForm.m.OpenMnClicked);
+		popupMenu.addSeparator();
+		
+		JMenuItem mntmCopy = new JMenuItem("Copy");
+		popupMenu.add(mntmCopy);
+		mntmCopy.addActionListener(MainForm.m.OpenMnClicked);
+		
+		JMenuItem mntmCut = new JMenuItem("Cut");
+		popupMenu.add(mntmCut);
+		mntmCut.addActionListener(MainForm.m.OpenMnClicked);
+		
+		JMenuItem mntmRename = new JMenuItem("Rename");
+		popupMenu.add(mntmRename);
+		mntmRename.addActionListener(MainForm.m.OpenMnClicked);
+		
+		JMenuItem mntmDel = new JMenuItem("Delete");
+		popupMenu.add(mntmDel);
+		mntmDel.addActionListener(MainForm.m.OpenMnClicked);
+		
 		setLayout(new BorderLayout());
 		
 		JLabel ico = new JLabel(iconFile);
@@ -55,7 +86,7 @@ public class LargeFileIcon extends JPanel {
 		 titPane = new JPanel();
 		titPane.setBackground(Color.WHITE);
 		titPane.setLayout(new FlowLayout());
-		JLabel title = new JLabel(name);
+		title = new JLabel(name);
 		titPane.add(title);
 		
 		add(titPane,BorderLayout.SOUTH);
@@ -73,6 +104,7 @@ public class LargeFileIcon extends JPanel {
 		this.addMouseListener(iconClicked);
 		this.addFocusListener(otherIcoClicked);
 	}
+	
 	private MouseListener iconClicked = new MouseListener() {
 		
 		@Override
@@ -121,4 +153,21 @@ public class LargeFileIcon extends JPanel {
 			
 		}
 	};
+	private static void addPopup(Component component, final JPopupMenu popup) {
+		component.addMouseListener(new MouseAdapter() {
+			public void mousePressed(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					showMenu(e);
+				}
+			}
+			public void mouseReleased(MouseEvent e) {
+				if (e.isPopupTrigger()) {
+					showMenu(e);
+				}
+			}
+			private void showMenu(MouseEvent e) {
+				popup.show(e.getComponent(), e.getX(), e.getY());
+			}
+		});
+	}
 }

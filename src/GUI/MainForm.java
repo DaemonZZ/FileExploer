@@ -6,12 +6,14 @@ import javax.swing.event.TreeSelectionListener;
 import javax.swing.filechooser.FileSystemView;
 
 import GUI.Control.ArrowButton;
+import GUI.Control.CopyPath;
 import GUI.Control.IconLoader;
 import GUI.Control.LargeFileIcon;
 import GUI.Control.addressPanel;
 
 import java.awt.BorderLayout;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.TreeSet;
 import java.awt.Color;
@@ -19,8 +21,6 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 
 import javax.swing.tree.DefaultTreeModel;
-
-
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 import java.awt.Toolkit;
@@ -28,6 +28,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.Component;
@@ -42,6 +44,72 @@ public class MainForm extends JFrame{
 	JPanel largeView1;
 	JScrollPane mainScroll;
 	JPopupMenu panelPop;
+	public static MainForm m;
+	LargeFileIcon selectedIcon;
+	CopyPath cp;
+	JTextField txtRename;
+	public ActionListener OpenMnClicked = new ActionListener() {
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			
+			if(e.getActionCommand().equals("Open")) {
+				loadFile(selectedIcon);
+			}
+			if(e.getActionCommand().equals("Copy")) {
+				cp = new CopyPath(selectedIcon.getFile(), CopyPath.COPY);
+			}
+			if(e.getActionCommand().equals("Cut")) {
+				cp = new CopyPath(selectedIcon.getFile(), CopyPath.CUT);
+			}
+			if(e.getActionCommand().equals("Rename")) {
+				try {
+					String newName = JOptionPane.showInputDialog("Nhập tên mới zô");
+					if(newName!=null) {
+						String reEx = "";
+						if(selectedIcon.getFile().isDirectory()) {
+							reEx = "^(\\w+\\.?)*\\w+$";
+						} 
+						else {
+							reEx ="^[\\w,\\s-]+\\.[A-Za-z]{3}$";
+						}
+						
+						if(!newName.matches(reEx)) 
+							throw new FileNameFormatException();
+						File old = selectedIcon.getFile();
+						File parent = old.getParentFile();
+						File newF = new File(parent.getAbsolutePath()+"\\"+newName);
+						old.renameTo(newF);
+						loadFile(new LargeFileIcon(parent, parent.getName()));
+					
+					}
+					
+				} catch (FileNameFormatException e2) {
+					JOptionPane.showMessageDialog(rootPane, "Tên sai định dạng");
+				}
+				catch (NullPointerException e2) {
+					JOptionPane.showMessageDialog(rootPane, "Không thể đổi tên file hệ thống");
+					e2.printStackTrace();
+				}
+				
+			}
+			if(e.getActionCommand().equals("Delete")) {
+				File file = selectedIcon.getFile();
+				int input = JOptionPane.showConfirmDialog(rootPane, "Bạn chắc chăn muốn xóa file?","Delete",JOptionPane.OK_CANCEL_OPTION);
+				if(input==0) {
+					boolean b=file.delete();
+					if(b) {
+						JOptionPane.showMessageDialog(rootPane, "Xoá thành công");
+						loadFile((new LargeFileIcon(file.getParentFile(), file.getParentFile().getName())));
+					}
+					else {
+						JOptionPane.showMessageDialog(rootPane, "Không thể xóa file này");
+					}
+				}
+			}
+			
+		}
+	};
 	TreeSelectionListener tsl = new TreeSelectionListener() {
 		
 		@Override
@@ -66,7 +134,9 @@ public class MainForm extends JFrame{
 				
 				for (File file : root) {
 					if(!file.equals(d)){ 
-						largeView1.add(new LargeFileIcon(file, file.toString()));
+						LargeFileIcon ico = new LargeFileIcon(file, file.toString());
+						largeView1.add(ico);
+						
 					}
 				}
 				addPopup(largeView1, panelPop);
@@ -111,9 +181,13 @@ public class MainForm extends JFrame{
 			
 		}
 	};
+	
 	public MainForm() {
+		m=this;
 		setIconImage(Toolkit.getDefaultToolkit().getImage("ico\\pc.png"));
+		setTitle("ThisPC");
 		setSize(1204, 768);
+		setLocationRelativeTo(null);
 		setResizable(true);
 		
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
@@ -292,6 +366,7 @@ public class MainForm extends JFrame{
 		
 		return root;
 	}
+	
 	private MouseListener doubleClicked = new MouseListener() {
 		
 		@Override
@@ -303,7 +378,9 @@ public class MainForm extends JFrame{
 		@Override
 		public void mousePressed(MouseEvent e) {
 			// TODO Auto-generated method stub
-			
+			if(SwingUtilities.isRightMouseButton(e)) {
+				selectedIcon = (LargeFileIcon)e.getComponent();
+			}
 		}
 		
 		@Override
@@ -320,50 +397,54 @@ public class MainForm extends JFrame{
 		
 		@Override
 		public void mouseClicked(MouseEvent e) {
+			
 			if (e.getClickCount() == 2 && !e.isConsumed()) {
 			     e.consume();
-			     System.out.println("OK");
 			     LargeFileIcon selectedIco = (LargeFileIcon) e.getComponent();
-			     File selected = selectedIco.getFile();
-			     System.out.println(selected);
-			     path=(selected.getAbsolutePath());
-					File[] childList = selected.listFiles();
-					TreeSet<File> lst = new TreeSet<File>();
-					for (File file : childList) {
-						lst.add(file);
-					}
-					address.getTxtAdd().setText(path);
-					
-					 largeView1 = new JPanel();
-					 largeView1.setBackground(Color.WHITE);
-					 mainScroll.setViewportView(largeView1);
-					 int w = mainScroll.getWidth();
-					 int h =(childList.length/(w/150))*150;
-					 largeView1.setPreferredSize(new Dimension(w,h));
-					 largeView1.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 15));
-					 
-					 mainScroll.addComponentListener(new ComponentAdapter() {
-							@Override
-							public void componentResized(ComponentEvent e) {
-								int w = mainScroll.getWidth();
-								 int h =(childList.length/((w)/135)+1)*135;
-								 largeView1.setPreferredSize(new Dimension(w,h));
-							}
-						});
-					 
-					for (File file : lst) {
-						
-						LargeFileIcon icon = new LargeFileIcon(file, file.getName());
-						icon.setPreferredSize(new Dimension(120,120));
-						largeView1.add(icon);
-						icon.addMouseListener(doubleClicked);
-					}
-					addPopup(largeView1, panelPop);
-				
+			     loadFile(selectedIco);
 			}
 			
 		}
 	};
+	
+	public void loadFile(LargeFileIcon selectedIco) {
+		File selected = selectedIco.getFile();
+	     path=(selected.getAbsolutePath());
+			File[] childList = selected.listFiles();
+			TreeSet<File> lst = new TreeSet<File>();
+			for (File file : childList) {
+				lst.add(file);
+			}
+			address.getTxtAdd().setText(path);
+			
+			 largeView1 = new JPanel();
+			 largeView1.setBackground(Color.WHITE);
+			 mainScroll.setViewportView(largeView1);
+			 int w = mainScroll.getWidth();
+			 int h =(childList.length/(w/150))*150;
+			 largeView1.setPreferredSize(new Dimension(w,h));
+			 largeView1.setLayout(new FlowLayout(FlowLayout.LEFT, 15, 15));
+			 
+			 mainScroll.addComponentListener(new ComponentAdapter() {
+					@Override
+					public void componentResized(ComponentEvent e) {
+						int w = mainScroll.getWidth();
+						 int h =(childList.length/((w)/135)+1)*135;
+						 largeView1.setPreferredSize(new Dimension(w,h));
+					}
+				});
+			 
+			for (File file : lst) {
+				
+				LargeFileIcon icon = new LargeFileIcon(file, file.getName());
+				icon.setPreferredSize(new Dimension(120,120));
+				largeView1.add(icon);
+				icon.addMouseListener(doubleClicked);
+			}
+			addPopup(largeView1, panelPop);
+			setTitle(selected.getName());
+		
+	}
 	private final ButtonGroup buttonGroup = new ButtonGroup();
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
@@ -387,6 +468,12 @@ public class MainForm extends JFrame{
 				popup.show(e.getComponent(), e.getX(), e.getY());
 			}
 		});
+	}
+	
+	public void reName(LargeFileIcon ico) {
+		JTextField txt = new JTextField(ico.getName());
+		
+		ico.add(txt);
 	}
 	
 }

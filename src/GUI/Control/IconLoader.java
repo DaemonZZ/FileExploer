@@ -9,7 +9,13 @@ import javax.swing.Icon;
 import javax.swing.ImageIcon;
 
 public class IconLoader {
-
+	/**
+	 * 
+	 * @param linkImage : img file path
+	 * @param k : width
+	 * @param m : height
+	 * @return Icon with scaled size k * m
+	 */
 	public static Icon loadIco(String linkImage, int k, int m) {
 	    try {
 	        BufferedImage image = ImageIO.read(new File(linkImage));
